@@ -238,20 +238,20 @@ Depression_Scaled_Score and Anxiety_Scaled_Score stand out as critical indicator
 interrelationships and significant links to other variables, such as time spent on social media. The clustering of certain variables, like Anxiety_Scaled_Score, Depression_Scaled_Score, and
 ADHD_Scaled_Score, suggests overlapping effects on overall mental health score.
 
-<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/ecdad085b1fa1f03d2672854204cc9a69f79f7f2/Auxiliary/HeatMap-1.png" width="800" />
+<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/ecdad085b1fa1f03d2672854204cc9a69f79f7f2/Auxiliary/HeatMap-1.png" width="600" />
 
 According to this heatmap, variables such as Depression_Scaled_Score, Anxiety_Scaled_Score,
 and Avg_Time_SM_Num emerge as strong predictors of whether individuals are affected by
 social media.
 
-<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/ecdad085b1fa1f03d2672854204cc9a69f79f7f2/Auxiliary/HeatMap-2.png" width="800" />
+<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/ecdad085b1fa1f03d2672854204cc9a69f79f7f2/Auxiliary/HeatMap-2.png" width="600" />
 
 ## Models
 In our project, we explored several machine learning models to analyze the relationship between
 social media usage and mental health score. We selected Affected as our target variable, and
 selected other important variable to predict our target variable.,
 
-<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/ecdad085b1fa1f03d2672854204cc9a69f79f7f2/Auxiliary/Selected%20Attributes.png" width="800" />
+<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/ecdad085b1fa1f03d2672854204cc9a69f79f7f2/Auxiliary/Selected%20Attributes.png" width="400" />
 
 ## Linear Regression
 According to the model summary, variables like Social_Media_UserYes(Coefficient: -0.0688,
