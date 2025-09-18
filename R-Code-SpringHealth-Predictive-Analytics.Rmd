@@ -1,0 +1,790 @@
+---
+title: "ISTM-6214 - Final Project - Spring Health - Predictive Analytics"
+developers: Arnab Raychaudhari ; Qihao Guan
+development date: 3 December, 2024
+output: html_notebook
+---
+```{r}
+# LOAD LIBRARIES
+library(corrplot)
+library(reshape2)
+library(ggplot2)
+library(dplyr)
+library(scales)
+library(readr)
+library(caret)
+```
+
+```{r}
+# IMPORT RAW DATA
+
+data <- read.csv("smmh.csv")
+
+# Take a sneakpeak into the dataset
+head(data)
+```
+```{r}
+# DATA FRAME DIMENSION
+
+num_rows <- nrow(data)
+num_cols <- ncol(data)
+
+# Print the results
+cat("The dataset has", num_rows, "rows and", num_cols, "columns.\n")
+```
+```{r}
+# DATA TYPES OF VARIOUS FEATURES
+column_types <- sapply(data, class)
+print(column_types)
+```
+```{r}
+# PRINT COLUMN NAMES
+
+for (col in colnames(data)) {
+  print(col)
+}
+```
+```{r}
+# RENAME COLUMNS
+
+old_names <- colnames(data)
+new_names <- c("Survey_TimeStamp", "Age", "Gender", "Relationship_Status", 
+               "Occupation_Status", "Affiliated_Org_Type", "Social_Media_User", 
+               "Platforms_Used", "Avg_Time_on_SM", "ADHD_Q1", "ADHD_Q2", 
+               "Anxiety_Q1", "ADHD_Q3", "Anxiety_Q2", "ADHD_Q4", 
+               "Self_Esteem_Q1", "Self_Esteem_Q2", "Self_Esteem_Q3", 
+               "Depression_Q1", "Depression_Q2", "Depression_Q3")
+
+# Check if the lengths match before renaming
+if (length(old_names) != length(new_names)) {
+  stop("The number of new names does not match the number of old names!")
+}
+
+# Rename the columns
+colnames(data) <- new_names
+```
+```{r}
+head(data)
+```
+```{r}
+# FEATURE ENGINEERING - COUNT the number of PLATFORMS and write to a new column
+
+data <- data %>%
+  mutate(Num_of_Platforms = sapply(strsplit(Platforms_Used, ","), length))
+
+# View the updated dataset
+head(data)
+```
+```{r}
+# UNIQUE VALUES PER CATEGORICAL COLUMN
+
+# List of categorical columns
+categorical_columns <- c("Gender", 
+                         "Relationship_Status", 
+                         "Occupation_Status", 
+                         "Affiliated_Org_Type", 
+                         "Social_Media_User", 
+                         "Platforms_Used", 
+                         "Avg_Time_on_SM")
+
+# Check unique values for each categorical column
+unique_values <- lapply(data[categorical_columns], unique)
+
+# Print unique values for each column
+for (col in names(unique_values)) {
+  cat("Unique values in", col, ":\n")
+  print(unique_values[[col]])
+  cat("\n")
+}
+```
+```{r}
+# NORMALIZE GENDER DATA
+
+# Replace values in the Gender column
+data$Gender <- data$Gender %>%
+  gsub("^Male$", "M", .) %>%
+  gsub("^Female$", "F", .) %>%
+  gsub("^(Nonbinary |Non binary |Non-binary)$", "Non_Binary", .) %>%
+  gsub("^unsure $", "Not_Disclosed", .) %>%
+  gsub("^There are others\\?\\?\\?$", "Other", .)
+
+# View the updated Gender column
+unique(data$Gender)
+```
+
+```{r}
+# # NORMALIZE GENDER DATA (cont...)
+
+data$Gender <- data$Gender %>%
+  gsub("^NB$", "Non_Binary", .)
+
+# View the updated Gender column
+unique(data$Gender)
+```
+```{r}
+# Now that we have normalized the data lets look at the head
+head(data)
+```
+```{r}
+#data <- data %>% select(-Num_of_Afl_Org)
+```
+```{r}
+#head(data)
+```
+```{r}
+# FEATURE ENGINEERING - Replace N/A in Affiliated_Org_Type as Not_Affiliated
+
+data$Affiliated_Org_Type <- data$Affiliated_Org_Type %>%
+  gsub("^N/A$", "Not_Affiliated", .) %>%
+  gsub("^School, N/A$", "School", .) %>%
+  gsub("^University, N/A$", "University", .)
+
+# View the updated unique values in the column
+unique(data$Affiliated_Org_Type)
+```
+
+```{r}
+
+# COUNT UNIQUE 'AFFILIATED ORG TYPE'
+
+# Count the occurrences of each unique value in the Affiliated_Org_Type column
+affiliated_org_counts <- table(data$Affiliated_Org_Type)
+
+# Convert to a data frame for easier viewing
+affiliated_org_counts_df <- as.data.frame(affiliated_org_counts)
+colnames(affiliated_org_counts_df) <- c("Affiliated_Org_Type", "Count")
+
+# View the result
+print(affiliated_org_counts_df)
+```
+```{r}
+# FEATURE NEGINEERING - COUNT UNIQUE 'AFFILIATED ORG TYPE' and WRITE TO A NEW COLUMN
+
+data <- data %>%
+  mutate(Num_of_Afl_Org = sapply(strsplit(Affiliated_Org_Type, ","), length))
+
+# View the updated dataset
+tail(data)
+```
+```{r}
+# MISSING VALUES - Check for missing values across the dataset
+total_missing <- sum(is.na(data))
+cat("Total missing values:", total_missing, "\n")
+
+# Percentage of missing values per column
+missing_percentage <- colSums(is.na(data)) / nrow(data) * 100
+missing_percentage[missing_percentage > 0]
+```
+
+
+```{r}
+# ANY FLOATING VALUE IN AGE COLUMN? - Upon an initial review of the dataset in Excel, we noticed the possibility of some floating-point values for ages. If these occurrences are minimal, we plan to address them by rounding the values and converting the data type to integer. This adjustment will help prevent potential issues during model development or data visualization.
+
+# Identify rows with non-integer (floating-point) values
+floating_rows <- which(data$Age %% 1 != 0)
+
+# Display positions and values of floating-point numbers
+if (length(floating_rows) > 0) {
+  cat("Floating-point values found at positions:\n")
+  print(floating_rows)
+  cat("\nValues:\n")
+  print(data$Age[floating_rows])
+} else {
+  cat("No floating-point values found in the column.\n")
+}
+```
+
+```{r}
+# We see one floating point value in a data set of 481 observations.Hence, we feel safe to convert the Age column from numeric to integer.
+
+data$Age <- as.integer(data$Age)
+
+# Verify the data type of the Age column
+class(data$Age)
+```
+```{r}
+# Now lets look at the descriptive statistics of the entire dataset
+summary(data)
+```
+```{r}
+# Since we have done some feature engineering above, lets review the column names again
+colnames(data)
+```
+
+```{r}
+# We will calculate the aggregated score for mental health by summing up the respective scores for ADHD, Anxiety, Depression, and Self-Esteem. However, based on our assumptions regarding the relative contribution of each of these conditions to mental health deterioration, we have assigned the following weights to each component before computing the weighted sum.
+
+# Depression : 0.4
+# Anxiety : 0.3
+# Self - Esteem : 0.2
+# ADHD : 0.1
+
+#Adjustment of Self-Esteem Question #2 Scoring
+
+#Before performing column manipulations (e.g., summing scores), it is necessary to address the scoring issue with Self-Esteem Question #2, which originally asked:
+
+#“Following the previous question, how do you feel about these comparisons, generally speaking?”
+
+#The challenge lies in how the responses for this question are scored, as they differ in interpretation compared to other survey items. The original scoring system is as follows:
+	#•	Very Negative: 1
+	#•	Slightly Negative: 2
+	#•	Neutral: 3
+	#•	Slightly Positive: 4
+	#•	Very Positive: 5
+
+#In this study, a higher cumulative score reflects a greater deterioration in mental well-being. To ensure consistency with this framework, the scoring for this question has been revised to the following:
+	#•	Very Negative: 4
+	#•	Slightly Negative: 2
+	#•	Neutral: 0
+	#•	Slightly Positive: 0
+	#•	Very Positive: 0
+
+#The rationale for these changes is that “Slightly Positive” and “Very Positive” responses do not contribute to the measurement of negative mental health impacts, which is the primary focus of this research. By assigning them a score of zero, we exclude positive influences from the calculation. This revised scoring focuses solely on the “Neutral,” “Slightly Negative,” and “Very Negative” responses, aligning with the study’s objective of quantifying negative effects on mental well-being.
+```
+
+```{r}
+# FEATURE ENGINEERING (cont...)
+
+# Setting scores of 3, 4, and 5 to 0
+data$Self_Esteem_Q2[data$Self_Esteem_Q2 %in% c(3, 4, 5)] <- 0
+
+# Setting scores of '1' to '4' and '2' to '2'
+data$Self_Esteem_Q2[data$Self_Esteem_Q2 == 1] <- 4
+data$Self_Esteem_Q2[data$Self_Esteem_Q2 == 2] <- 2
+```
+```{r}
+# After Feature Engineering, now lets look at the UNIQUE VALUES in Self_Esteem_Q2
+unique_values <- unique(data$Self_Esteem_Q2)
+print(unique_values)
+```
+```{r}
+# FEATURE ENGINEERING (cont...)
+
+# Create the ADHD_Scaled_Score column
+data$ADHD_Scaled_Score <- rowSums(data[, c('ADHD_Q2', 'ADHD_Q3', 'ADHD_Q4')], na.rm = TRUE) * 0.1
+
+# Create the Anxiety_Scaled_Score column
+data$Anxiety_Scaled_Score <- rowSums(data[, c('Anxiety_Q1', 'Anxiety_Q2')], na.rm = TRUE) * 0.3
+
+# Create the Self_Esteem_Scaled_Score column
+data$Self_Esteem_Scaled_Score <- rowSums(data[, c('Self_Esteem_Q1', 'Self_Esteem_Q2', 'Self_Esteem_Q3')], na.rm = TRUE) * 0.2
+
+# Create the Depression_Scaled_Score column
+data$Depression_Scaled_Score <- rowSums(data[, c('Depression_Q1', 'Depression_Q2')], na.rm = TRUE) * 0.4
+
+# Create the Mental_Health_Score column
+data$Mental_Health_Score <- rowSums(data[, c('ADHD_Scaled_Score', 
+                                             'Anxiety_Scaled_Score', 
+                                             'Self_Esteem_Scaled_Score', 
+                                             'Depression_Scaled_Score')], na.rm = TRUE)
+
+# Display only the relevant columns
+head(data[, c('ADHD_Scaled_Score', 
+              'Anxiety_Scaled_Score', 
+              'Self_Esteem_Scaled_Score', 
+              'Depression_Scaled_Score', 
+              'Mental_Health_Score')])
+```
+```{r}
+# Select the new columns and view descriptive statistics
+new_columns <- data[, c('ADHD_Scaled_Score', 
+                        'Anxiety_Scaled_Score', 
+                        'Self_Esteem_Scaled_Score', 
+                        'Depression_Scaled_Score', 
+                        'Mental_Health_Score')]
+
+# View basic descriptive statistics
+summary(new_columns)
+```
+
+```{r}
+# We observed that the highest value of the Mental Health Score is 13.6. While this assumption should ideally be supported by research data, we propose a threshold for determining potential impairment. Specifically, if an individual’s Mental Health Score exceeds 70% of 13.6, it is assumed that they are likely experiencing symptoms that impair their ability to perform cognitive tasks at the level of a healthy individual.
+
+# To operationalise this, we are introducing a new binary feature called ‘Affected’. If an individual’s Mental Health Score is greater than  0.7 \times 13.6 , they will be classified as “Affected.” Otherwise, they will not be classified as such.
+```
+```{r}
+# Calculate the threshold
+threshold <- 0.7 * max(data$Mental_Health_Score, na.rm = TRUE)
+
+# Create the Affected column
+data$Affected <- ifelse(data$Mental_Health_Score >= threshold, "Yes", "No")
+
+# View the first few rows to verify
+head(data)
+```
+
+```{r}
+# Since the following columns are already used to derive new features- that help in determining whether a person's mental health is affected by social media exposure, we will go ahead and drop them.
+
+#Survey_TimeStamp: Upon reviewing the observations in the data set, we believe the survey results are being submitted more or less at the same time. Hence, time doesn't appear to be a statistically significant feature. 
+#Platforms_Used
+#ADHD_Q1 - dont drop
+#ADHD_Q2
+#ADHD_Q3
+#ADHD_Q4
+#Anxiety_Q1
+#Anxiety_Q2
+#Depression_Q1
+#Depression_Q2
+#Depression_Q3 - dont drop
+#Self_Esteem_Q1
+#Self_Esteem_Q2
+#Self_Esteem_Q3
+#Mental_Health_Score
+
+```
+```{r}
+# COPY DATAFRAME AND DROP COLUMNS
+columns_to_drop <- c('Survey_TimeStamp', 'Platforms_Used', 'ADHD_Q2', 
+                     'ADHD_Q3', 'ADHD_Q4', 'Anxiety_Q1', 'Anxiety_Q2', 
+                     'Depression_Q1', 'Depression_Q2', 
+                     'Self_Esteem_Q1', 'Self_Esteem_Q2', 'Self_Esteem_Q3', 
+                     'Mental_Health_Score')
+
+# Create a new data frame without the specified columns
+new_data <- data[, !(names(data) %in% columns_to_drop)]
+
+# View the first few rows of the new data frame
+head(new_data)
+```
+```{r}
+# Calculate the number of unique values
+num_unique_values <- length(unique(new_data$Avg_Time_on_SM))
+cat("Number of unique values in Avg_Time_on_SM:", num_unique_values, "\n")
+
+# Calculate the record count for each unique value
+value_counts <- table(new_data$Avg_Time_on_SM)
+
+# Display the counts
+print(value_counts)
+```
+```{r}
+# DATA VISUALIZATION
+
+# We will start with a bunch of histograms to see the frequency distribution
+
+# 1 - Lets see the distribution among people based on the average time they spent on social media
+
+# Group data by 'Time Spent' and count occurrences
+time_spent_counts <- new_data %>%
+  group_by(Avg_Time_on_SM) %>%
+  summarise(Frequency = n())
+
+# Create a bar plot with rotated x-axis labels, distinct colors, and value labels
+ggplot(time_spent_counts, aes(x = Avg_Time_on_SM, y = Frequency, fill = Avg_Time_on_SM)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = Frequency), vjust = -0.5, size = 3) + # Add value labels
+  labs(x = "Average Time Spent on Social Media", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_manual(values = rainbow(nrow(time_spent_counts))) # Adds distinct colors
+```
+
+```{r}
+# Calculate total count
+total <- nrow(new_data)
+
+# Create a count plot with percentages
+ggplot(new_data, aes(x = Gender)) +
+  geom_bar(fill = "skyblue") +
+  geom_text(stat = "count", aes(label = scales::percent(..count../total, accuracy = 0.1)), 
+            vjust = -0.5, size = 3) +
+  labs(x = "Gender", y = "Count", title = "Distribution of Gender with Percentages") +
+  theme_minimal()
+```
+```{r}
+# Calculate total count
+total <- nrow(new_data)
+
+# Create a count plot with percentages
+ggplot(new_data, aes(x = Affected)) +
+  geom_bar(fill = "lightblue") +  # Bar plot with a light blue color
+  geom_text(stat = "count", aes(label = percent(..count../total, accuracy = 0.1)), 
+            vjust = -0.5, size = 3) +  # Add percentage labels above bars
+  labs(x = "Affected", y = "Count", title = "Distribution of Affected vs Not Affected with Percentages") +
+  theme_minimal()
+```
+```{r}
+# Calculate total count
+total <- nrow(new_data)
+
+# Create a count plot with percentage labels
+ggplot(new_data, aes(x = Occupation_Status, fill = Occupation_Status)) +
+  geom_bar() +
+  geom_text(stat = "count", aes(label = percent(..count../total, accuracy = 0.1)), 
+            vjust = -0.5, size = 3) +  # Add percentage labels above bars
+  scale_fill_brewer(palette = "Set3") +  # Apply a visually appealing color palette
+  labs(x = "Occupation_Status", y = "Count", title = "Distribution of Occupation Status with Percentages") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
+```
+```{r}
+# Calculate total count
+total <- nrow(new_data)
+
+# Create a count plot with percentage labels
+ggplot(new_data, aes(x = Relationship_Status, fill = Relationship_Status)) +
+  geom_bar() +
+  geom_text(stat = "count", aes(label = percent(..count../total, accuracy = 0.1)), 
+            vjust = -0.5, size = 3) +  # Add percentage labels above bars
+  scale_fill_brewer(palette = "Set3") +  # Apply a visually appealing color palette
+  labs(x = "Relationship_Status", y = "Count", title = "Distribution of Relationship_Status with Percentages") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
+```
+```{r}
+# Create a new column 'Avg_Time_SM_Num' with mapped numeric values
+new_data$Avg_Time_SM_Num <- dplyr::case_when(
+  new_data$Avg_Time_on_SM == "Between 1 and 2 hours" ~ 1.5,
+  new_data$Avg_Time_on_SM == "Between 2 and 3 hours" ~ 2.5,
+  new_data$Avg_Time_on_SM == "Between 3 and 4 hours" ~ 3.5,
+  new_data$Avg_Time_on_SM == "Between 4 and 5 hours" ~ 4.5,
+  new_data$Avg_Time_on_SM == "Less than an Hour" ~ 0.5,
+  new_data$Avg_Time_on_SM == "More than 5 hours" ~ 5.5,
+  TRUE ~ NA_real_  # Assign NA for unexpected values
+)
+
+# Check the new column
+head(new_data)
+```
+```{r}
+#Lets look at the unique values in the new column
+unique(new_data$Avg_Time_SM_Num)
+```
+```{r}
+
+# Create the plot
+adhd_plot <- ggplot(data = new_data, aes(x = Age, y = ADHD_Scaled_Score, colour = Affected, shape = Affected)) +
+  geom_point(size = 3) +  # Add points with different colors and shapes
+  geom_smooth(method = "lm", se = TRUE, aes(group = Affected), linetype = "dashed") +  # Add regression lines
+  labs(
+    x = "Age",
+    y = "ADHD Scaled Score",
+    title = "ADHD Scaled Score vs Age by Affected Status"
+  ) +
+  theme_minimal() +  # Apply a minimal theme
+  theme(
+    legend.position = "top",  # Move legend to the top
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels if necessary
+  )
+
+# Display the plot
+adhd_plot
+```
+```{r}
+
+# Create the plot
+adhd_plot <- ggplot(data = new_data, aes(x = Age, y = Depression_Scaled_Score, colour = Affected, shape = Affected)) +
+  geom_point(size = 3) +  # Add points with different colors and shapes
+  geom_smooth(method = "lm", se = TRUE, aes(group = Affected), linetype = "dashed") +  # Add regression lines
+  labs(
+    x = "Age",
+    y = "Depression Scaled Score",
+    title = "Depression Scaled Score vs Age by Affected Status"
+  ) +
+  theme_minimal() +  # Apply a minimal theme
+  theme(
+    legend.position = "top",  # Move legend to the top
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels if necessary
+  )
+
+# Display the plot
+adhd_plot
+```
+```{r}
+
+# Create the plot
+adhd_plot <- ggplot(data = new_data, aes(x = Age, y = Anxiety_Scaled_Score, colour = Affected, shape = Affected)) +
+  geom_point(size = 3) +  # Add points with different colors and shapes
+  geom_smooth(method = "lm", se = TRUE, aes(group = Affected), linetype = "dashed") +  # Add regression lines
+  labs(
+    x = "Age",
+    y = "Anxiety Scaled Score",
+    title = "Anxiety Scaled Score vs Age by Affected Status"
+  ) +
+  theme_minimal() +  # Apply a minimal theme
+  theme(
+    legend.position = "top",  # Move legend to the top
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels if necessary
+  )
+
+# Display the plot
+adhd_plot
+```
+```{r}
+
+# Create the plot
+adhd_plot <- ggplot(data = new_data, aes(x = Age, y = Self_Esteem_Scaled_Score, colour = Affected, shape = Affected)) +
+  geom_point(size = 3) +  # Add points with different colors and shapes
+  geom_smooth(method = "lm", se = TRUE, aes(group = Affected), linetype = "dashed") +  # Add regression lines
+  labs(
+    x = "Age",
+    y = "Self Esteem Scaled Score",
+    title = "Self Esteem Scaled Score vs Age by Affected Status"
+  ) +
+  theme_minimal() +  # Apply a minimal theme
+  theme(
+    legend.position = "top",  # Move legend to the top
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels if necessary
+  )
+
+# Display the plot
+adhd_plot
+```
+```{r}
+
+# Create the plot
+adhd_plot <- ggplot(data = new_data, aes(x = Avg_Time_SM_Num, y = Anxiety_Scaled_Score, colour = Affected, shape = Affected)) +
+  geom_point(size = 3) +  # Add points with different colors and shapes
+  geom_smooth(method = "lm", se = TRUE, aes(group = Affected), linetype = "dashed") +  # Add regression lines
+  labs(
+    x = "Average Time Spent of Social Media",
+    y = "Anxiety Scaled Score",
+    title = "Anxiety Scaled Score vs Time Spent on SM by Affected Status"
+  ) +
+  theme_minimal() +  # Apply a minimal theme
+  theme(
+    legend.position = "top",  # Move legend to the top
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels if necessary
+  )
+
+# Display the plot
+adhd_plot
+```
+```{r}
+# Create the plot
+adhd_plot <- ggplot(data = new_data, aes(x = Num_of_Platforms, y = Anxiety_Scaled_Score, colour = Affected, shape = Affected)) +
+  geom_point(size = 3) +  # Add points with different colors and shapes
+  geom_smooth(method = "lm", se = TRUE, aes(group = Affected), linetype = "dashed") +  # Add regression lines
+  labs(
+    x = "Number of Social Media Platforms Used",
+    y = "Anxiety Scaled Score",
+    title = "Anxiety Scaled Score vs Social Media Platforms, by Affected Status"
+  ) +
+  theme_minimal() +  # Apply a minimal theme
+  theme(
+    legend.position = "top",  # Move legend to the top
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels if necessary
+  )
+
+# Display the plot
+adhd_plot
+
+```
+```{r}
+# Create the plot
+adhd_plot <- ggplot(data = new_data, aes(x = Num_of_Afl_Org, y = Depression_Scaled_Score, colour = Affected, shape = Affected)) +
+  geom_point(size = 3) +  # Add points with different colors and shapes
+  geom_smooth(method = "lm", se = TRUE, aes(group = Affected), linetype = "dashed") +  # Add regression lines
+  labs(
+    x = "Number of Affiliated Organizations",
+    y = "Depression Scaled Score",
+    title = "Depression Scaled Score vs Affiliated Organizations, by Affected Status"
+  ) +
+  theme_minimal() +  # Apply a minimal theme
+  theme(
+    legend.position = "top",  # Move legend to the top
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels if necessary
+  )
+
+# Display the plot
+adhd_plot
+```
+```{r}
+# Calculate the mean ADHD Score by Time Spent and sort in ascending order
+mean_adhd_scores <- new_data %>%
+  group_by(Avg_Time_on_SM) %>%
+  summarise(Mean_ADHD_Score = mean(ADHD_Scaled_Score, na.rm = TRUE)) %>%
+  arrange(Mean_ADHD_Score)
+
+# Create a bar plot
+ggplot(mean_adhd_scores, aes(x = reorder(Avg_Time_on_SM, Mean_ADHD_Score), y = Mean_ADHD_Score)) +
+  geom_bar(stat = "identity", fill = "skyblue") +  # Bar plot with a specific color
+  labs(x = "Time Spent on Social Media", y = "Mean ADHD Score", title = "Mean ADHD Score by Time Spent") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
+```
+```{r}
+# Calculate the mean Depression Score by Time Spent and sort in ascending order
+mean_adhd_scores <- new_data %>%
+  group_by(Avg_Time_on_SM) %>%
+  summarise(Mean_Depression_Score = mean(Depression_Scaled_Score, na.rm = TRUE)) %>%
+  arrange(Mean_Depression_Score)
+
+# Create a bar plot
+ggplot(mean_adhd_scores, aes(x = reorder(Avg_Time_on_SM, Mean_Depression_Score), y = Mean_Depression_Score)) +
+  geom_bar(stat = "identity", fill = "skyblue") +  # Bar plot with a specific color
+  labs(x = "Time Spent on Social Media", y = "Mean Depression Score", title = "Mean Depression Score by Time Spent") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
+```
+```{r}
+# Identify numeric and integer columns
+numeric_features <- new_data %>%
+  select_if(~ is.numeric(.) || is.integer(.))
+
+# Write numeric and integer features to a new dataframe
+numeric_data <- numeric_features
+
+# View the new dataframe
+head(numeric_data)
+```
+```{r}
+correlation_matrix <- cor(numeric_data, use = "complete.obs")
+# Display the correlation plot
+corrplot(correlation_matrix, method = "circle", type = "upper", tl.cex = 0.8, tl.col = "black", order = "hclust")
+```
+```{r}
+# Compute correlation for numeric features
+numeric_features <- new_data %>% select_if(is.numeric)
+
+# Add the target variable as numeric
+numeric_features$Affected <- as.numeric(as.factor(new_data$Affected))
+
+# Compute correlations
+correlations <- cor(numeric_features, use = "complete.obs")
+
+# Visualize the correlation matrix
+corrplot(correlations, method = "circle", type = "upper", tl.cex = 0.8, tl.col = "black")
+```
+```{r}
+# Perform chi-square tests for categorical features
+chisq.test(xtabs(~Affected + Occupation_Status, data = new_data), correct=FALSE)
+```
+```{r}
+# Perform chi-square tests for categorical features
+chisq.test(xtabs(~Affected + Affiliated_Org_Type, data = new_data), correct=FALSE)
+```
+```{r}
+# Perform chi-square tests for categorical features
+chisq.test(xtabs(~Affected + Gender, data = new_data), correct=FALSE)
+```
+```{r}
+# Perform chi-square tests for categorical features
+chisq.test(xtabs(~Affected + Social_Media_User, data = new_data), correct=FALSE)
+```
+```{r}
+# Perform chi-square tests for categorical features
+chisq.test(xtabs(~Affected + Avg_Time_on_SM, data = new_data), correct=FALSE)
+```
+
+
+```{r}
+chisq.test(xtabs(~Affected + Relationship_Status, data = new_data), correct=FALSE)
+```
+```{r}
+head(new_data)
+```
+```{r}
+# Save the cleaned dataframe as a CSV file
+write.csv(new_data, file = "cleaned_data.csv", row.names = FALSE)
+
+# Print a message to confirm the file is saved
+cat("Cleaned data has been saved as 'cleaned_data.csv' in our working directory.This is now ready for model development in RapidMiner")
+```
+```{r}
+column_types <- sapply(new_data, class)
+print(column_types)
+```
+```{r}
+# Convert categorical columns to factors in 'new_data'
+categorical_columns <- c("Gender", "Relationship_Status", "Occupation_Status",
+                         "Affiliated_Org_Type", "Social_Media_User", "Affected")
+new_data[categorical_columns] <- lapply(new_data[categorical_columns], as.factor)
+
+# Step 1: Create 'Drop_in_SM_Use_Prob'
+adhd_mean <- mean(new_data$ADHD_Q1, na.rm = TRUE)
+adhd_sd <- sd(new_data$ADHD_Q1, na.rm = TRUE)
+new_data <- new_data %>%
+  mutate(Drop_in_SM_Use_Prob = pnorm(ADHD_Q1, mean = adhd_mean, sd = adhd_sd))
+
+# Step 2: Create 'Increase_in_Sleep_Issue_Prob'
+depression_mean <- mean(new_data$Depression_Q3, na.rm = TRUE)
+depression_sd <- sd(new_data$Depression_Q3, na.rm = TRUE)
+new_data <- new_data %>%
+  mutate(Increase_in_Sleep_Issue_Prob = pnorm(Depression_Q3, mean = depression_mean, sd = depression_sd))
+
+# Step 3: Use Cross Validation to Split the Dataset
+set.seed(123)  # For reproducibility
+cv_control <- trainControl(method = "cv", number = 10, savePredictions = "final")
+
+# Step 4: Train Logistic Regression with 'Affected' as target
+log_model <- train(Affected ~ ., data = new_data, method = "glm", family = binomial(link = "logit"), trControl = cv_control)
+new_data <- new_data %>%
+  mutate(Pr_x = predict(log_model, new_data, type = "prob")[, "Yes"])
+
+# Step 5: Train Linear Regression with 'Drop_in_SM_Use_Prob' as target
+#lm_model_drop <- train(Drop_in_SM_Use_Prob ~ ., data = new_data, method = "lm", trControl = cv_control)
+lm_model_drop <- train(Drop_in_SM_Use_Prob ~ Age + Gender + Relationship_Status + Occupation_Status + Affiliated_Org_Type + Social_Media_User + Avg_Time_SM_Num + ADHD_Q1 + Depression_Q3 + Num_of_Platforms + Num_of_Afl_Org + ADHD_Scaled_Score + Anxiety_Scaled_Score + Self_Esteem_Scaled_Score + Depression_Scaled_Score , data = new_data, method = "lm", trControl = cv_control)
+new_data <- new_data %>%
+  mutate(Vi_x = predict(lm_model_drop, new_data))
+
+# Extract and print beta values and p-values for lm_model_drop
+summary(lm_model_drop)  # Get summary of the linear model
+
+
+# Step 6: Train Linear Regression with 'Increase_in_Sleep_Issue_Prob' as target
+lm_model_sleep <- train(Increase_in_Sleep_Issue_Prob ~ ., data = new_data, method = "lm", trControl = cv_control)
+new_data <- new_data %>%
+  mutate(Vni_x = predict(lm_model_sleep, new_data))
+
+# Extract and print beta values and p-values for lm_model_sleep
+summary(lm_model_sleep)  # Get summary of the linear model
+
+# Step 7: Add 'Threshold' column
+new_data <- new_data %>%
+  mutate(Threshold = -Vni_x / (Vi_x - Vni_x))
+
+# Step 8: Add 'Expected Benefit' column
+new_data <- new_data %>%
+  mutate(Expected_Benefit = Pr_x * Vi_x + (1 - Pr_x) * Vni_x)
+
+# Step 9: Add 'Y_Pred_Incentivize_User'
+new_data <- new_data %>%
+  mutate(Y_Pred_Incentivize_User = ifelse(Expected_Benefit > Threshold, "Yes", "No"))
+
+# Step 10: Treat 'Affected' as Y_Test
+new_data <- new_data %>%
+  mutate(Y_Test = Affected)
+
+# Step 11: Add Confusion Matrix Columns (Cumulative Calculation)
+new_data <- new_data %>%
+  mutate(
+    TP = cumsum(ifelse(Y_Pred_Incentivize_User == "Yes" & Y_Test == "Yes", 1, 0)),
+    FP = cumsum(ifelse(Y_Pred_Incentivize_User == "Yes" & Y_Test == "No", 1, 0)),
+    TN = cumsum(ifelse(Y_Pred_Incentivize_User == "No" & Y_Test == "No", 1, 0)),
+    FN = cumsum(ifelse(Y_Pred_Incentivize_User == "No" & Y_Test == "Yes", 1, 0)),
+    TPR = TP / (TP + FN),
+    FPR = FP / (FP + TN),
+    TNR = TN / (TN + FP),
+    FNR = FN / (FN + TP)
+  )
+
+# Step 12: Add 'Expected Cumulative Profit' column
+p_P <- mean(new_data$Affected == "Yes")  # Positive class prior
+p_N <- 1 - p_P                          # Negative class prior
+V_TP <- 99
+V_FN <- -100
+V_TN <- 0
+V_FP <- -1
+
+new_data <- new_data %>%
+  mutate(Expected_Cumulative_Profit = 
+           p_P * (TPR * V_TP + FNR * V_FN) + 
+           p_N * (TNR * V_TN + FPR * V_FP))
+
+# View final data
+head(new_data)
+```
+```{r}
+tail(new_data)
+```
+```{r}
+# Save the data frame with model predictions to a CSV file
+write.csv(new_data, file = "Model_Predictions_SM.csv", row.names = FALSE)
+```
+
+```{r}
+summary(lm_model_drop)
+```
+
