@@ -380,3 +380,80 @@ helps identify the threshold that maximizes profit while balancing prediction ac
 <img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/8ce7d096e9485f7be50cd02da2bf26b331fde280/Auxiliary/Confusion%20Matrix.png" width="200" />
 
 <img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/8ce7d096e9485f7be50cd02da2bf26b331fde280/Auxiliary/Expected%20Cumulative%20Profit.png" width="800" />
+
+## Recommendations
+To build on the findings of this study and capitalize on identified opportunities, we recommend
+the following actions for SpringHealth:
+
+1. <h4>Implement a Targeted Incentivization Plan</h4>
+Focus interventions on heavy social media users, especially those spending more than
+five hours daily, as they represent the highest potential for impact. Prioritize outreach to
+university students and salaried workers, who are associated with the greatest
+profitability, to maximize resource efficiency.
+
+2. <h4>Integrate Predictive Models into the Platform</h4>
+Incorporate logistic regression and SVM models into SpringHealth’s platform to
+accurately identify individuals at risk of mental health issues. These models offer reliability and precision, making them ideal for tailoring interventions and improving
+outcomes.
+
+3. <h4>Develop a Real-Time Data Pipeline</h4>
+Use tools like AWS S3, Athena, and Glue to build a real-time data pipeline that
+continuously pulls information from social media platforms via API endpoints. This
+infrastructure will ensure the models stay up to date, enabling timely and effective
+interventions.
+
+4. <h4>Combine Real-Time Data with Survey Insights</h4>
+Integrate real-time data streams with survey results to provide a more comprehensive
+view of user behavior and mental health risks. This approach will improve the depth and
+accuracy of the insights driving decision-making.
+
+5. <h4>Refine Predictor Selection</h4>
+Analyze interactions between key variables to enhance predictor selection, ensuring the
+models better capture the complex relationships between social media use and mental
+health outcomes. This refinement will improve both the interpretability and precision of
+the models.
+
+6. <h4>Conduct surveys post-implementation to evaluate the effectiveness of the models and
+interventions. These surveys will help assess their impact on user outcomes and provide
+valuable feedback for refining the approach.</h4>
+
+7. <h4>Position SpringHealth’s predictive analytics tool as a key solution for addressing
+adolescent mental health issues, aligning with federal initiatives such as SAMHSA. This alignment can strengthen funding opportunities and partnerships with public health
+organizations.</h4>
+
+8. <h4>Enhance Model Generalization</h4>
+Address overfitting in models like Decision Tree and Neural Network through techniques
+such as pruning and regularization. This will ensure the models perform consistently
+across varied datasets and applications.
+
+9. <h4>Strengthen Data Pipelines</h4>
+Invest in robust data collection and preprocessing frameworks to support the real-time
+pipeline. These pipelines should manage missing values, standardize features, and
+address outliers, maintaining high-quality data for analysis.
+
+10. <h4>Expand Applications Beyond Incentivization</h4>
+Explore additional use cases such as early intervention alerts, partnerships with
+educational institutions, and personalized mental health resources. These initiatives could
+amplify the positive impact of SpringHealth’s offerings.
+
+11. <h4>Collaborate with Research Partners</h4>
+Partner with academic and public health organizations to deepen the understanding of
+social media’s impact on mental health. These collaborations can support continuous
+model improvement and bolster SpringHealth’s role as a leader in the field.
+
+By following these recommendations, SpringHealth can enhance its capabilities to address
+adolescent mental health challenges effectively, while also positioning itself for long-term
+growth and innovation.
+
+## References
+<a href="https://www.kaggle.com/datasets/souvikahmed071/social-media-and-mental-
+health?select=smmh.csv" target="_blank">Kaggle Dataset</a>
+
+<a href="https://law.stanford.edu/2024/05/20/social-media-addiction-and-mental-health-the-growing-conc
+ern-for-youth-well-being/#:~:text=A%20systematic%20review%20found%20that,least%20some
+%20reason%20for%20concern" target="_blank">Social Media Addiction and Mental Health: The Growing Concern for Youth Well-Being. Kenta
+Minamitani, Stanford LLM 2024.</a>
+
+
+<a href="https://www.hhs.gov/sites/default/files/sg-youth-mental-health-social-media-advisory.pdf" target="_blank">Surgeon General Issues New Advisory About Effects Social Media Use Has on Youth Mental
+Health.</a>
