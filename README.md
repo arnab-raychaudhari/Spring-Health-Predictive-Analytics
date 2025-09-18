@@ -377,6 +377,6 @@ sensitivity and specificity at each threshold. These models' highest Expected_Cu
 is achieved at a threshold of -0.9968756, with optimized classification outcomes. This analysis
 helps identify the threshold that maximizes profit while balancing prediction accuracy.
 
-<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/8ce7d096e9485f7be50cd02da2bf26b331fde280/Auxiliary/Confusion%20Matrix.png" width="400" />
+<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/8ce7d096e9485f7be50cd02da2bf26b331fde280/Auxiliary/Confusion%20Matrix.png" width="200" />
 
 <img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/8ce7d096e9485f7be50cd02da2bf26b331fde280/Auxiliary/Expected%20Cumulative%20Profit.png" width="800" />
