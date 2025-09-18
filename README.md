@@ -74,12 +74,12 @@ derived from survey data on sleep disorders.
 
 The Expected Benefit formula combines these predictions:
 
-<h2>Expected Benefit = Pr(X) × Vi(X) + (1−Pr(X)) × Vni(X)</h2>
+<h3>Expected Benefit = Pr(X) × Vi(X) + (1−Pr(X)) × Vni(X)</h3>
 
 A decision to incentivize is made if the expected benefit exceeds a predefined threshold,
 calculated as:
 
-<h2>—V_ni(X) / (V_ni(X) - V_i(X))</h2>
+<h3>—V_ni(X) / (V_ni(X) - V_i(X))</h3>
 
 ## Cost-Benefit Framework
 To quantify the economic impact of interventions, the team developed a cost-benefit matrix.
