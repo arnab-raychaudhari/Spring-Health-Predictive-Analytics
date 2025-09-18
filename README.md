@@ -306,3 +306,54 @@ accurately differentiate between positive and negative well-being outcomes.
 
 <img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/ecdad085b1fa1f03d2672854204cc9a69f79f7f2/Auxiliary/Logistic%20Regression%20Output.png" width="800" />
 
+## Support Vector Machines (SVM)
+We implemented an SVM model with a linear kernel to classify well-being outcomes. SVM can
+be used to capture the nonlinear relationships between social media usage and mental health
+factors.
+
+The model was also trained with cross-validation to improve generalizability and avoid
+overfitting. The linear kernel was chosen to maintain simplicity and interpretability.
+Important features included Anxiety_Scaled_Score and Depression_Scaled_Score, both of which
+had high weights in the model, which means that these features were crucial in defining the
+decision boundary between classes.
+
+The SVM model has a strong performance with an AUC of 0.9. The model was effective in cases
+where there was a distinct separation between positive and negative well-being outcomes.
+However, The use of 481 support vectors suggests a complex decision boundary, possibly
+indicating overfitting.
+
+<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/9956da2f401242d7710081aee2ec90f3e5a56b4d/Auxiliary/Support%20Vector%20Output.png" width="800" />
+
+## Neural Network
+We also trained a Neural Network model to capture complex, non-linear relationships between
+features. Neural Network models are powerful tools for modeling intricate patterns that simpler
+models might miss.
+
+The model was trained using back-propagation and optimized with gradient descent.
+Cross-validation was also employed to evaluate model performance across different subsets of
+data. The Neural Network achieved competitive results, particularly excelling in scenarios with
+subtle, non-linear interactions between features. The use of sigmoid activation helped classify
+well-being outcomes effectively, and the model's flexibility allowed it to capture complex
+dependencies between variables. Also, we found that Node 3 has the highest absolute value for
+both classes, which means it significantly impacts whether the model predicts "Yes" or "No."
+
+<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/9956da2f401242d7710081aee2ec90f3e5a56b4d/Auxiliary/Neural%20Network%20Output.png" width="800" />
+
+## Model Evaluation
+To compare the performance of all models, we used metrics such as AUC, accuracy, precision,
+recall, and log loss. AUC was particularly useful in assessing the discriminatory ability of the
+models, while accuracy and recall provided insights into the balance of true positive and true
+negative predictions.
+
+The ROC curve illustrated that Logistic Regression and SVM had the highest performance, with
+both models achieving a near-perfect separation between positive and negative classes. The
+Neural Network and Decision Tree also performed well, but the latter showed signs of overfitting
+in certain cases.
+
+Also, each model provided unique insights. Logistic Regression offered interpretability, allowing
+us to understand the significance of each feature. SVM provided a robust margin-based
+classification, while the Neural Network excelled at capturing complex, non-linear relationships.
+The Decision Tree's visual structure helped in understanding decision-making processes but was
+less generalizable compared to the other models.
+
+<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/9956da2f401242d7710081aee2ec90f3e5a56b4d/Auxiliary/Model%20Evaluation.png" width="800" />
