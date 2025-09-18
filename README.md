@@ -74,12 +74,24 @@ derived from survey data on sleep disorders.
 
 The Expected Benefit formula combines these predictions:
 
-<h3>Expected Benefit = Pr(X) × Vi(X) + (1−Pr(X)) × Vni(X)</h3>
+<table>
+<tr>
+<td style="border:1px solid black; padding:8px;">
+<h4>Expected Benefit = Pr(X) × Vi(X) + (1−Pr(X)) × Vni(X)</h4>
+</td>
+</tr>
+</table>
 
 A decision to incentivize is made if the expected benefit exceeds a predefined threshold,
 calculated as:
 
-<h3>—V_ni(X) / (V_ni(X) - V_i(X))</h3>
+<table>
+<tr>
+<td style="border:1px solid black; padding:8px;">
+<h4>—V_ni(X) / (V_ni(X) - V_i(X))</h4>
+</td>
+</tr>
+</table>
 
 ## Cost-Benefit Framework
 To quantify the economic impact of interventions, the team developed a cost-benefit matrix.
@@ -95,4 +107,19 @@ The matrix ensures that every prediction is evaluated for its financial implicat
 ## Expected Profit Analysis
 Building on the cost-benefit framework, the GWU team proposed an Expected Profit formula:
 
-Expected Profit = p(P) * [ TPR<sub>E</sub>p(N) * V(TP)<sub>C</sub> + FNR<sub>E</sub> * V(FN)<sub>C</sub> ] + p(N) * [ TNR<sub>E</sub> * V(TN)<sub>C</sub> + FPR<sub>E</sub> * V(FP)<sub>C</sub> ]
+<table>
+<tr>
+<td style="border:1px solid black; padding:8px;">
+Expected Profit = p(P) * [ TPR<sub>E</sub> * V(TP)<sub>C</sub> + FNR<sub>E</sub> * V(FN)<sub>C</sub> ] + p(N) * [ TNR<sub>E</sub> * V(TN)<sub>C</sub> + FPR<sub>E</sub> * V(FP)<sub>C</sub> ]
+</td>
+</tr>
+</table>
+
+
+
+Where:
+
+• p(P) and p(N) are the class priors for positive and negative cases.
+
+• TPR<sub>E</sub>, FPR<sub>E</sub>, FNR<sub>E</sub>, TNR<sub>E</sub> are rates from the Expected Probability Matrix (EPM), built on
+Expected Benefit and Cost-Benefit matrix.
