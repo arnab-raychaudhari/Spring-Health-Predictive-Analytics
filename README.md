@@ -357,3 +357,26 @@ The Decision Tree's visual structure helped in understanding decision-making pro
 less generalizable compared to the other models.
 
 <img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/9956da2f401242d7710081aee2ec90f3e5a56b4d/Auxiliary/Model%20Evaluation.png" width="800" />
+
+## Conclusion and Results
+The combination of these models allowed us to explore the relationship between social media
+usage and mental health scores.These models highlighted the key factors influencing mental
+health scores such as Depression_Scaled_Score, Anxiety_Scaled_Score, and
+Self_Esteem_Scaled_Score, providing a well-rounded understanding of the impact of social
+media usage on mental health. However, The Final Confusion Matrix is not great, because it is a
+combination of the predictions from 3 different models we used in our Business Decision
+Strategy. According to our models’ results, people who spend more than 5 hours on social
+media are associated with the highest expected profit, highlighting a potential relationship
+between heavy usage and profitability. Also, university students are associated with the highest
+expected profit, followed by salaried workers and school students.
+
+Also, the table evaluates a binary classification model's performance across different thresholds,
+focusing on metrics like True Positive Rate (TPR), False Positive Rate (FPR), and True Negative
+Rate (TNR), also with expected benefits and cumulative profits. It shows the trade-offs between
+sensitivity and specificity at each threshold. These models' highest Expected_Cumulative_Profit
+is achieved at a threshold of -0.9968756, with optimized classification outcomes. This analysis
+helps identify the threshold that maximizes profit while balancing prediction accuracy.
+
+<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/8ce7d096e9485f7be50cd02da2bf26b331fde280/Auxiliary/Confusion%20Matrix.png" width="400" />
+
+<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/8ce7d096e9485f7be50cd02da2bf26b331fde280/Auxiliary/Expected%20Cumulative%20Profit.png" width="800" />
