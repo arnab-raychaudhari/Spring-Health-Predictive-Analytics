@@ -84,3 +84,15 @@ calculated as:
 ## Cost-Benefit Framework
 To quantify the economic impact of interventions, the team developed a cost-benefit matrix.
 
+<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/2d3cad7d4249ee92b4791607f21763e4f38bf80c/Auxiliary/Confusion-Matrix-Flow.png" width="800" />
+
+  Figure 1: Confusion Matrix (EPM) flow
+
+<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/2d3cad7d4249ee92b4791607f21763e4f38bf80c/Auxiliary/Cost-Benefit-Matrix.png" width="800" />
+
+The matrix ensures that every prediction is evaluated for its financial implications, enabling Spring Health to make informed decisions.
+
+## Expected Profit Analysis
+Building on the cost-benefit framework, the GWU team proposed an Expected Profit formula:
+
+Expected Profit = p(P) * [ TPR<sub>E</sub>p(N) * V(TP)<sub>C</sub> + FNR<sub>E</sub> * V(FN)<sub>C</sub> ] + p(N) * [ TNR<sub>E</sub> * V(TN)<sub>C</sub> + FPR<sub>E</sub> * V(FP)<sub>C</sub> ]
