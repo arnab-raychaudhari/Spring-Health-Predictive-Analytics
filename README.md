@@ -322,7 +322,7 @@ where there was a distinct separation between positive and negative well-being o
 However, The use of 481 support vectors suggests a complex decision boundary, possibly
 indicating overfitting.
 
-<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/9956da2f401242d7710081aee2ec90f3e5a56b4d/Auxiliary/Support%20Vector%20Output.png" width="800" />
+<img src="https://github.com/arnab-raychaudhari/Spring-Health-Predictive-Analytics/blob/9956da2f401242d7710081aee2ec90f3e5a56b4d/Auxiliary/Support%20Vector%20Output.png" width="400" />
 
 ## Neural Network
 We also trained a Neural Network model to capture complex, non-linear relationships between
